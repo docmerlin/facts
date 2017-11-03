@@ -9,7 +9,6 @@ package vectormodel
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	"gonum.org/v1/gonum/mat"
@@ -71,7 +70,7 @@ func NewVectorModel(documents map[int][]float64, confidence, regularization floa
 }
 
 // Rank sorts a list of candidate assets for a given user history
-func (vm *VectorModel) Rank(candidates *[]int, seenDocs *map[int]bool) (scores []float64, err error) {
+func (vm *VectorModel) Rank(candidates *[]int, seenDocs *map[int]float64) (scores []float64, err error) {
 	candidateScores, err := vm.scoreCandidates(candidates, seenDocs)
 	if err != nil {
 		return nil, err
@@ -85,7 +84,7 @@ func (vm *VectorModel) Rank(candidates *[]int, seenDocs *map[int]bool) (scores [
 }
 
 // Recommend returns a list of recommendedDocs and a list of scores
-func (vm *VectorModel) Recommend(seenDocs *map[int]bool, n int) (recommendations []DocumentScore, err error) {
+func (vm *VectorModel) Recommend(seenDocs *map[int]float64, n int) (recommendations []DocumentScore, err error) {
 	recommendations, err = vm.scoreCandidates(&vm.docIDs, seenDocs)
 	if err != nil {
 		return nil, err
@@ -96,13 +95,9 @@ func (vm *VectorModel) Recommend(seenDocs *map[int]bool, n int) (recommendations
 	return recommendations, nil
 }
 
-func (vm *VectorModel) scoreCandidates(candidates *[]int, seenDocs *map[int]bool) (recommendations []DocumentScore, err error) {
-	confidenceMap := vm.confidenceMap(seenDocs)
-	if len(confidenceMap) == 0 {
-		return nil, fmt.Errorf("No seen doc is in model. History: %d Model: %d",
-			len(*seenDocs), len(vm.docIndexes))
-	}
-	userVec, err := vm.userVector(confidenceMap)
+func (vm *VectorModel) scoreCandidates(candidates *[]int, seenDocs *map[int]float64) (recommendations []DocumentScore, err error) {
+	//confidenceMap := vm.confidenceMap(seenDocs)
+	userVec, err := vm.userVector(*seenDocs)
 	if err != nil {
 		return recommendations, err
 	}
